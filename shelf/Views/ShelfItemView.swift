@@ -162,13 +162,13 @@ class DraggableNSView: NSView, NSDraggingSource {
 
     override func mouseDragged(with event: NSEvent) {
         guard let item = item, let startPoint = dragStartPoint else { return }
-        didDrag = true
 
-        // Only start drag if moved enough distance
+        // Only start drag if moved enough distance (reduced from 5 to 2 for responsiveness)
         let currentPoint = event.locationInWindow
         let distance = hypot(currentPoint.x - startPoint.x, currentPoint.y - startPoint.y)
-        guard distance > 5 else { return }
+        guard distance > 2 else { return }
 
+        didDrag = true
         // Reset so we don't start multiple drags
         dragStartPoint = nil
 
