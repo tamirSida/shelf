@@ -28,10 +28,16 @@ final class ShelfPanelController {
 
         guard let panel = panel, let screen = NSScreen.main else { return }
 
-        // Set content
-        let contentView = ShelfContentView(store: store, onDismiss: { [weak self] in
-            self?.hidePanel()
-        })
+        // Set content with drag handler
+        let contentView = ShelfContentView(
+            store: store,
+            onDismiss: { [weak self] in
+                self?.hidePanel()
+            },
+            onStartDrag: { [weak self] mouseLocation in
+                self?.handleDrag(to: mouseLocation)
+            }
+        )
         panel.contentView = NSHostingView(rootView: contentView)
 
         // Position at top center of screen
@@ -54,6 +60,16 @@ final class ShelfPanelController {
         }
 
         isVisible = true
+    }
+
+    private func handleDrag(to mouseLocation: NSPoint) {
+        guard let panel = panel else { return }
+
+        let panelSize = panel.frame.size
+        let newX = mouseLocation.x - panelSize.width / 2
+        let newY = mouseLocation.y - 20  // Offset so cursor is in header area
+
+        panel.setFrameOrigin(NSPoint(x: newX, y: newY))
     }
 
     func hidePanel() {

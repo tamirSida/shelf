@@ -10,6 +10,7 @@ import Observation
 @Observable
 final class ShelfStore {
     private(set) var items: [ShelfItem] = []
+    var notepadText: String = ""
 
     private let fileManager = FileManager.default
     private let shelfDirectory: URL
@@ -139,6 +140,7 @@ final class ShelfStore {
             }
         }
         items.removeAll()
+        notepadText = ""
     }
 
     func addFromPasteboard() {

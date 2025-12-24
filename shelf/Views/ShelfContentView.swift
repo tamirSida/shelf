@@ -10,18 +10,30 @@ import AppKit
 struct ShelfContentView: View {
     @Bindable var store: ShelfStore
     var onDismiss: () -> Void
+    var onStartDrag: ((NSPoint) -> Void)?
 
     @State private var isDropTargeted = false
+    @State private var showNotepad = false
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header - draggable area
             HStack {
                 Text("Shelf")
                     .font(.headline)
                     .foregroundStyle(.secondary)
 
                 Spacer()
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showNotepad.toggle()
+                    }
+                } label: {
+                    Image(systemName: showNotepad ? "note.text" : "note.text.badge.plus")
+                }
+                .buttonStyle(.borderless)
+                .help("Toggle notepad")
 
                 Button {
                     store.addFromPasteboard()
@@ -37,7 +49,7 @@ struct ShelfContentView: View {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.borderless)
-                .disabled(store.items.isEmpty)
+                .disabled(store.items.isEmpty && store.notepadText.isEmpty)
                 .help("Clear all items")
 
                 Button {
@@ -50,14 +62,26 @@ struct ShelfContentView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
+            .background(DragHandleView(onDrag: onStartDrag))
 
             Divider()
 
             // Content area
-            if store.items.isEmpty {
-                emptyState
-            } else {
-                itemsGrid
+            HStack(spacing: 0) {
+                // Items section
+                if store.items.isEmpty && !showNotepad {
+                    emptyState
+                } else if store.items.isEmpty && showNotepad {
+                    notepadView
+                } else {
+                    itemsGrid
+
+                    if showNotepad {
+                        Divider()
+                        notepadView
+                            .frame(width: 200)
+                    }
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -89,6 +113,21 @@ struct ShelfContentView: View {
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var notepadView: some View {
+        VStack(spacing: 0) {
+            TextEditor(text: Binding(
+                get: { store.notepadText },
+                set: { store.notepadText = $0 }
+            ))
+            .font(.system(size: 13))
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+            .padding(8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.primary.opacity(0.03))
     }
 
     private var itemsGrid: some View {
@@ -185,5 +224,31 @@ class KeyEventNSView: NSView {
         } else {
             super.keyDown(with: event)
         }
+    }
+}
+
+// MARK: - Drag Handle for moving the shelf
+
+struct DragHandleView: NSViewRepresentable {
+    var onDrag: ((NSPoint) -> Void)?
+
+    func makeNSView(context: Context) -> DragHandleNSView {
+        let view = DragHandleNSView()
+        view.onDrag = onDrag
+        return view
+    }
+
+    func updateNSView(_ nsView: DragHandleNSView, context: Context) {
+        nsView.onDrag = onDrag
+    }
+}
+
+class DragHandleNSView: NSView {
+    var onDrag: ((NSPoint) -> Void)?
+
+    override var mouseDownCanMoveWindow: Bool { false }
+
+    override func mouseDragged(with event: NSEvent) {
+        onDrag?(NSEvent.mouseLocation)
     }
 }
