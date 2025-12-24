@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct SettingsView: View {
     @State private var settings = SettingsManager.shared
@@ -40,6 +41,10 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 350, height: 300)
+        .onAppear {
+            // Bring app to front when settings opens (needed for LSUIElement apps)
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 }
 

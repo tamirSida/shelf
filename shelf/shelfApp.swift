@@ -83,6 +83,7 @@ struct MenuBarView: View {
         SettingsLink {
             Text("Settings...")
         }
+        .keyboardShortcut(",", modifiers: .command)
 
         Button("Quit Shelf") {
             NSApplication.shared.terminate(nil)

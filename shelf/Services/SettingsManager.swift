@@ -5,6 +5,7 @@
 
 import Foundation
 import SwiftUI
+import AppKit
 
 enum ShelfLayout: String, CaseIterable, Identifiable {
     case horizontal = "horizontal"
@@ -60,5 +61,14 @@ final class SettingsManager {
         }
 
         self.launchAtLogin = UserDefaults.standard.bool(forKey: "launchAtLogin")
+    }
+
+    func openSettings() {
+        // For LSUIElement apps, we need to use NSApp.sendAction to open Settings
+        if #available(macOS 14.0, *) {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        } else {
+            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        }
     }
 }
